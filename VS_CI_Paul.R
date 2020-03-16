@@ -5,7 +5,7 @@
 # ---------------------------------------------------------------------------- #
 # ---------------------------------------------------------------------------- #
 # Created on 08/03/2020 ------------------------------------------------------ #
-# Iteration 2.0.1 ---------- Last updated on 09/03/2020 -------- by Paul MELKI #
+# Iteration 3.0.1 ---------- Last updated on 16/03/2020 -------- by Paul MELKI #
 # R Version 3.6.2 on Windows 10 ---------------------------------------------- #
 # ---------------------------------------------------------------------------- #
 
@@ -104,10 +104,10 @@ for (i in 1:numberOfSamples) {
 # samples. We also save a binary variable "containsMean" which takes the value
 # 1 if the true mean is in the interval and 0 if not.
 vs.confidenceIntervals <- data.frame(
-  LB = rep(0, numberOfSamples),
-  UB = rep(0, numberOfSamples),
-  length = rep(0, numberOfSamples),
-  containsMean = rep(0, numberOfSamples),
+  "LB" = rep(0, numberOfSamples),
+  "UB" = rep(0, numberOfSamples),
+  "length" = rep(0, numberOfSamples),
+  "containsMean" = rep(0, numberOfSamples)
 )
 
 # 4.2. Get Z_{alpha/2} and save the number of observations in the dataset
@@ -134,26 +134,118 @@ for (i in 1:numberOfSamples) {
   
   # Check whether the CI contains the mean or not
   vs.confidenceIntervals$containsMean[i] <- ifelse(
-    numvisit.MLE.fit$estimate >= lower_bound &
-    numvisit.MLE.fit$estimate <= upper_bound,
+    numvisit.MLE.fit$estimate >= lowerBound &
+    numvisit.MLE.fit$estimate <= upperBound,
     1, 0
   )
 }
 
-
 # 4.4. Compute the Empirical Coverage Probability defined as the empirical mean
 # of the number of times the true mean was found in the variance-stablizing CI.
 # ECP -> Empirical Coverage Probability
-vs.ECP <- mean(confidenceIntervals$containsMean)
+vs.ECP <- mean(vs.confidenceIntervals$containsMean)
 
 # 4.5. Compute the Empirical Expected Length of the variance-stablizing CI which
 # is the empirical mean of the lengths of all obtained CIs.
 # EEL -> Empirical Expected Length
-vs.EEL <- mean(confidenceIntervals$length)
+vs.EEL <- mean(vs.confidenceIntervals$length)
+
+
+
+# ##### ---------------------------------------------------------------------- #
+# 5. 
+# BOOTSTRAP INTERVALS
+# ---------------------------------------------------------------------------- #
+
+# For each of the 500 previously generated samples from Poisson distribution, 
+# generate B bootstrap samples.
+# Review last slide in the slides set "Confidence Intervals" by Prof. Thomas
+
+# 5.1. This will be a "list of lists" containing, for each of the 500 samples we
+# have, B bootstrap samples
+bootstrapSamples <- list()
+
+# 5.2. This will be a "list of vectors" containing, for each of the 500 samples we 
+# have, B means for each of the B bootstrap samples generated.
+bootstrapMeans <- list()
+
+# 5.3. We create a data frame in which we save the lower and upper bounds, and 
+# the length of each confidence interval, calculated from each of the 500 
+# samples. We also save a binary variable "containsMean" which takes the value
+# 1 if the true mean is in the interval and 0 if not.
+boot.confidenceIntervals <- data.frame(
+  "LB" = rep(0, numberOfSamples),
+  "UB" = rep(0, numberOfSamples),
+  "length" = rep(0, numberOfSamples),
+  "containsMean" = rep(0, numberOfSamples)
+)
+
+# 5.4. Set number of bootstrap samples to generate
+B <- 100
+
+# 5.5. For each of the 500 generated samples, generate B bootstrap samples and 
+# calculate Bootstrap CIs as specified in slides by Prof. Thomas
+for (i in 1:numberOfSamples) {
+  
+  # Initialise the list of bootstrap samples
+  bootstrapSamples[[i]] <- list()
+  # Initialise the vector of bootstrap means
+  bootstrapMeans[[i]] <- rep(0, B)
+  
+  for (j in 1:B) {
+    # Generate random indices of elements to include in bootstrap samples
+    indices <- sample(1:n, n, replace = TRUE)
+    # Generate bootstrap sample and save
+    bootstrapSamples[[i]][[j]] <- mdvis$numvisit[indices]
+    # Compute the mean of the generated bootstrap sample
+    bootstrapMeans[[i]][j] <- mean(bootstrapSamples[[i]][[j]])
+    # Compute the pivotal quantity, as specified in the slides
+    bootstrapMeans[[i]][j] <- bootstrapMeans[[i]][j] - numvisit.MLE.fit$estimate
+  }
+  
+  # Compute lower and upper bounds of bootstrap confidence interval for each 
+  # of the samples as specified in the slides
+  lowerBound <- numvisit.mean - quantile(bootstrapMeans[[i]], 0.975)
+  upperBound <- numvisit.mean - quantile(bootstrapMeans[[i]], 0.025)
+  
+  # Save the Upper Bound and Lower Bound in the created data frame
+  boot.confidenceIntervals$LB <- lowerBound
+  boot.confidenceIntervals$UB <- upperBound
+  
+  # Save the length of the calculated interval
+  boot.confidenceIntervals$length <- upperBound - lowerBound
+  
+  # Check whether the CI contains the mean or not
+  boot.confidenceIntervals$containsMean <- ifelse(
+    numvisit.MLE.fit$estimate >= lowerBound &
+      numvisit.MLE.fit$estimate <= upperBound,
+    1, 0
+  )
+  
+}
+
+# Let's take a look at the obtained results
+View(boot.confidenceIntervals)
+# Nice!
+
+# 5.6. Compute the Empirical Coverage Probability defined as the empirical mean
+# of the number of times the true mean was found in the Bootstrap CI.
+# ECP -> Empirical Coverage Probability
+boot.ECP <- mean(boot.confidenceIntervals$containsMean)
+
+# 4.5. Compute the Empirical Expected Length of the variance-stablizing CI which
+# is the empirical mean of the lengths of all obtained CIs.
+# EEL -> Empirical Expected Length
+boot.EEL <- mean(boot.confidenceIntervals$length)
+
+
+# ---------------------------------------------------------------------------- #
 
 
 # ????? THIS SECTION IS QUESTIONABLE 
 # Looking at population coverage probability
+# This method needs to be approximated numerically. Look at answer by Prof. 
+# Thomas on Moodle
 popcovs = 0
 for (i in 0:100) {
   
