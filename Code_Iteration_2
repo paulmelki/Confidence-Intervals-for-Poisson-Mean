@@ -5,7 +5,7 @@
 # ---------------------------------------------------------------------------- #
 # ---------------------------------------------------------------------------- #
 # Created on 08/03/2020 ------------------------------------------------------ #
-# Iteration 3.0.1 ---------- Last updated on 16/03/2020 -------- by Paul MELKI #
+# Iteration 3.0.1 ---------- Last updated on 18/03/2020 -------- by Paul MELKI #
 # R Version 3.6.2 on Windows 10 ---------------------------------------------- #
 # ---------------------------------------------------------------------------- #
 
@@ -151,7 +151,26 @@ wald.ECP <- mean(wald.confidenceIntervals$containsMean)
 # EEL -> Empirical Expected Length
 wald.EEL <- mean(wald.confidenceIntervals$length)
 
+# 4.6. Compute the numerical approximation of the population coverage 
+# probability (APCP) as defined in (Barker, 2002, p. 85)
+wald.APCP <- 0
+# We choose the value of 6000 in order to keep the computations tractable...
+for (i in 1:6000) {
+  
+  # Compute the upper and lower bounds
+  lowerBound <- i - z * (i^0.5)
+  upperBound <- i + z * (i^0.5)
+  
+  # Create create an indicator of the event n*\theta between upper & lower bound
+  indic <- ifelse(n * numvisit.MLE.fit$estimate >= lowerBound &
+                  n * numvisit.MLE.fit$estimate <= upperBound, 1, 0)
+  
+  wald.APCP <- wald.APCP + indic * dpois(i, n * numvisit.MLE.fit$estimate)
+}
 
+# Let's take a look at the obtained approximation of the population coverage
+# probability
+wald.APCP # Nice!
 
 
 # ##### ---------------------------------------------------------------------- #
@@ -159,6 +178,77 @@ wald.EEL <- mean(wald.confidenceIntervals$length)
 # SCORE CONFIDENCE INTERVAL
 # ---------------------------------------------------------------------------- #
 
+# In this section, the names of all results will be of the form "score.[Result]"
+
+# 5.1. We create a data frame in which we save the lower and upper bounds, and 
+# the length of each confidence interval, calculated from each of the 500 
+# samples. We also save a binary variable "containsMean" which takes the value
+# 1 if the true mean is in the interval and 0 if not.
+
+score.confidenceIntervals <- data.frame(
+  "LB" = rep(0, numberOfSamples),
+  "UB" = rep(0, numberOfSamples),
+  "length" = rep(0, numberOfSamples),
+  "containsMean" = rep(0, numberOfSamples)
+)
+
+# 5.2. For each of the generated samples, calculate the Score confidence 
+# interval as specified in (Barker, 2002, p. 86).
+
+for (i in 1:numberOfSamples) {
+  
+  # Compute the mean of the sample
+  xBar <- mean(listOfSamples[[i]])
+  
+  # Compute the upper and lower bounds
+  upperBound <- xBar + z^2/(2 * n)+ z * sqrt(4 * xBar + (z^2)/n)/(sqrt(4 * n))
+  lowerBound <- xBar + z^2/(2 * n)+ z * sqrt(4 * xBar + (z^2)/n)/(sqrt(4 * n))
+  
+  # Save the upper and lower bounds in the created dataframe
+  score.confidenceIntervals$UB <- upperBound
+  score.confidenceIntervals$LB <- lowerBound
+  
+  # Compute the length of the confidence interval
+  score.confidenceIntervals$length <- upperBound - lowerBound
+  
+  # Check whether the CI contains mean or not
+  score.confidenceIntervals$containsMean[i] <- ifelse(
+    numvisit.MLE.fit$estimate >= lowerBound &
+      numvisit.MLE.fit$estimate <= upperBound,
+    1, 0
+  )
+}
+
+# 5.3. Compute the Empirical Coverage Probability defined as the empirical mean
+# of the number of times the true mean was found in the Score CI.
+# ECP -> Empirical Coverage Probability
+score.ECP <- mean(wald.confidenceIntervals$containsMean)
+
+# 5.4. Compute the Empirical Expected Length of the Score CI which is the
+# empirical mean of the lengths of all obtained CIs.
+# EEL -> Empirical Expected Length
+score.EEL <- mean(wald.confidenceIntervals$length)
+
+# 5.5. Compute the numerical approximation of the population coverage 
+# probability (APCP) as defined in (Barker, 2002, p. 85)
+score.APCP <- 0
+# We choose the value of 6000 in order to keep the computations tractable...
+for (i in 1:6000) {
+  
+  # Compute the upper and lower bounds
+  upperBound <- i/n + z^2/(2 * n) + z * sqrt(4 * i/n + (z^2)/n)/(sqrt(4 * n))
+  lowerBound <- i/n + z^2/(2 * n) - z * sqrt(4 * i/n + (z^2)/n)/(sqrt(4 * n))
+
+  # Create create an indicator of the event n*\theta between upper & lower bound
+  indic <- ifelse(numvisit.MLE.fit$estimate >= lowerBound &
+                  numvisit.MLE.fit$estimate <= upperBound, 1, 0)
+  
+  score.APCP <- score.APCP + indic * dpois(i, n * numvisit.MLE.fit$estimate)
+}
+
+# Let's take a look at the obtained approximation of the population coverage
+# probability
+score.APCP # Nice!
 
 
 # ##### ---------------------------------------------------------------------- #
@@ -218,6 +308,27 @@ vs.ECP <- mean(vs.confidenceIntervals$containsMean)
 # is the empirical mean of the lengths of all obtained CIs.
 # EEL -> Empirical Expected Length
 vs.EEL <- mean(vs.confidenceIntervals$length)
+
+# 6.6. Compute the numerical approximation of the population coverage 
+# probability (APCP) as defined in (Barker, 2002, p. 85)
+vs.APCP <- 0
+# We choose the value of 6000 in order to keep the computations tractable...
+for (i in 1:6000) {
+  
+  # Compute the upper and lower bounds
+  upperBound <- i/n + (z^2) / (4*n) + z * sqrt(i / (n^2))
+  lowerBound <- i/n + (z^2) / (4*n) - z * sqrt(i / (n^2))
+
+  # Create create an indicator of the event n*\theta between upper & lower bound
+  indic <- ifelse(numvisit.MLE.fit$estimate >= lowerBound &
+                  numvisit.MLE.fit$estimate <= upperBound, 1, 0)
+  
+  vs.APCP <- vs.APCP + indic * dpois(i, n * numvisit.MLE.fit$estimate)
+}
+
+# Let's take a look at the obtained approximation of the population coverage
+# probability
+vs.APCP # Nice!
 
 
 
