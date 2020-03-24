@@ -1,6 +1,7 @@
 # Mathematical Statistics 2 Project
 ## PROJECT: CONFIDENCE INTERVAL FOR A POISSON MEAN
-### Yanxin Li, Paul Melki, Mira Rahal, Zefeng Zhang
+### Yanxin LI - Paul MELKI - Mira RAHAL - Zefeng ZHANG
+---
 
 This project is based on the paper entitled *A Comparison of Nine Confidence Intervals for a Poisson Parameter When the Expected Number of Events  <= 5* (Barker, L., 2002). 
 
