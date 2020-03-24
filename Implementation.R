@@ -332,7 +332,7 @@ for (i in 1:6000) {
   # Create create an indicator of the event n*\theta between upper & lower bound
   indic <- ifelse(numvisit.MLE.fit$estimate >= lowerBound &
                   numvisit.MLE.fit$estimate <= upperBound, 1, 0)
-
+  # Update value
   vs.APCP <- vs.APCP + indic * dpois(i, n * numvisit.MLE.fit$estimate)
 }
 
@@ -428,11 +428,11 @@ exact.EEL <- mean(exact.confidenceIntervals$length)
 # 7.6. Compute the numerical approximation of the population coverage 
 # probability (APCP) as defined in (Barker, 2002, p. 85)
 exact.APCP <- 0
-# We choose the value of 6000 in order to keep the computations tractable...
-# Create list that will hold the upper and lower bounds calculated based on the
-# Exact Method
+# Create list that will hold the upper and lower bounds computed using the Exact
+# method
 upperBounds <- list()
 lowerBounds <- list()
+# We choose the value of 6000 in order to keep the computations tractable...
 for (i in 1:6000) {
   
   # Calculate the upper and lower bounds following the Exact Method
@@ -441,7 +441,7 @@ for (i in 1:6000) {
     lowerBoundCDF <- ppois(i, n * j, lower = FALSE)
     # Save computed lower bound
     lowerBounds[i] <- n * (j - 0.001)
-    
+    # We stop when the lowerBoundCDF is smaller or equal to alpha/2
     if (lowerBoundCDF > 0.025) break
   }
   
@@ -450,14 +450,14 @@ for (i in 1:6000) {
     upperBoundCDF <- ppois(i, n * j)
     # Save computed upper bound
     upperBounds[i] <- n * j
-    
+    # We stop when the upperBoundCDF is greater than alpha/2
     if (upperBoundCDF <= 0.025) break
   }
 
   # Create create an indicator of the event n*\theta between upper & lower bound
   indic <- ifelse(n * numvisit.MLE.fit$estimate >= lowerBounds[i] &
                     n * numvisit.MLE.fit$estimate <= upperBounds[i], 1, 0)
-  
+  # Update value
   exact.APCP <- exact.APCP + indic * dpois(i, n * numvisit.MLE.fit$estimate)
 }
 
