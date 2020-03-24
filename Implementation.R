@@ -433,6 +433,11 @@ exact.APCP <- 0
 upperBounds <- list()
 lowerBounds <- list()
 # We choose the value of 6000 in order to keep the computations tractable...
+# We choose the value of 6000 in order to keep the computations tractable...
+# Create list that will hold the upper and lower bounds calculated based on the
+# Exact Method
+upperBounds <- list()
+lowerBounds <- list()
 for (i in 1:6000) {
   
   # Calculate the upper and lower bounds following the Exact Method
@@ -458,7 +463,7 @@ for (i in 1:6000) {
   indic <- ifelse(n * numvisit.MLE.fit$estimate >= lowerBounds[i] &
                     n * numvisit.MLE.fit$estimate <= upperBounds[i], 1, 0)
   # Update value
-  exact.APCP <- exact.APCP + indic * dpois(i, n * numvisit.MLE.fit$estimate)
+    exact.APCP <- exact.APCP + indic * dpois(i, n * numvisit.MLE.fit$estimate)
 }
 
 # Let's take a look at the obtained approximation of the population coverage
