@@ -207,8 +207,8 @@ for (i in 1:numberOfSamples) {
   print(xBar)
   
   # Compute the upper and lower bounds
-  upperBound <- xBar + z^2/(2 * n)- z * sqrt(4 * xBar + (z^2)/n)/(sqrt(4 * n))
-  lowerBound <- xBar + z^2/(2 * n)+ z * sqrt(4 * xBar + (z^2)/n)/(sqrt(4 * n))
+  upperBound <- xBar + z^2/(2 * n)+ z * sqrt(4 * xBar + (z^2)/n)/(sqrt(4 * n))
+  lowerBound <- xBar + z^2/(2 * n)- z * sqrt(4 * xBar + (z^2)/n)/(sqrt(4 * n))
   print(paste(upperBound, lowerBound))
   
   # Save the upper and lower bounds in the created dataframe
@@ -433,11 +433,6 @@ exact.APCP <- 0
 upperBounds <- list()
 lowerBounds <- list()
 # We choose the value of 6000 in order to keep the computations tractable...
-# We choose the value of 6000 in order to keep the computations tractable...
-# Create list that will hold the upper and lower bounds calculated based on the
-# Exact Method
-upperBounds <- list()
-lowerBounds <- list()
 for (i in 1:6000) {
   
   # Calculate the upper and lower bounds following the Exact Method
@@ -463,7 +458,7 @@ for (i in 1:6000) {
   indic <- ifelse(n * numvisit.MLE.fit$estimate >= lowerBounds[i] &
                     n * numvisit.MLE.fit$estimate <= upperBounds[i], 1, 0)
   # Update value
-    exact.APCP <- exact.APCP + indic * dpois(i, n * numvisit.MLE.fit$estimate)
+  exact.APCP <- exact.APCP + indic * dpois(i, n * numvisit.MLE.fit$estimate)
 }
 
 # Let's take a look at the obtained approximation of the population coverage
@@ -516,7 +511,7 @@ for (i in 1:numberOfSamples) {
     # Generate random indices of elements to include in bootstrap samples
     indices <- sample(1:n, n, replace = TRUE)
     # Generate bootstrap sample and save
-    bootstrapSamples[[i]][[j]] <- mdvis$numvisit[indices]
+    bootstrapSamples[[i]][[j]] <- listOfSamples[[i]][indices]
     # Compute the mean of the generated bootstrap sample
     bootstrapMeans[[i]][j] <- mean(bootstrapSamples[[i]][[j]])
     # Compute the pivotal quantity, as specified in the slides
@@ -596,7 +591,7 @@ dataToPlot.lengths$length <- c(
 ggplot(data = dataToPlot.lengths, 
        aes(x = confidenceInterval, y = length,
            fill = confidenceInterval)) + 
-  geom_boxplot(notch = TRUE) + 
+  geom_boxplot(notch = FALSE) + 
   scale_fill_brewer("Confidence Interval", palette = "GnBu") + 
   xlab("") + ylab("Length of CI") + 
   ggtitle("Distribution of the CIs lengths") +
@@ -632,7 +627,7 @@ dataToPlot.lengths$length <- c(
 # 9.1.4. Plot!
 ggplot(data = dataToPlot.lengths, aes(x = confidenceInterval, y = length, 
                                       fill = confidenceInterval)) + 
-  geom_boxplot(notch = TRUE) + 
+  geom_boxplot(notch = FALSE) + 
   scale_fill_brewer("Confidence Interval", palette = "GnBu") + 
   xlab("") + ylab("Length of CI") + 
   ggtitle("Distribution of the CIs lengths", 
