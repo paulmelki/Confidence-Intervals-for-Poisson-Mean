@@ -5,7 +5,7 @@
 # ---------------------------------------------------------------------------- #
 # ---------------------------------------------------------------------------- #
 # Created on 08/03/2020 ------------------------------------------------------ #
-# Iteration 4.2.1 ---------- Last updated on 24/03/2020 -------- by Paul MELKI #
+# Iteration 4.2.1 ---------- Last updated on 01/04/2020 -------- by Paul MELKI #
 # R Version 3.6.2 on Windows 10 ---------------------------------------------- #
 # ---------------------------------------------------------------------------- #
 
@@ -41,6 +41,9 @@ help("mdvis")
 # 1.3. Set working directory, in order to save plots, later on.
 setwd("P:\\College Material\\Semester 2\\Mathematical Statistics 2\\Project\\Code")
 
+# 1.4. We set a constant seed so that any random results are replicated at each
+# run.
+set.seed(123)
 
 
 # ##### ---------------------------------------------------------------------- #
@@ -326,8 +329,8 @@ vs.APCP <- 0
 for (i in 1:6000) {
   
   # Compute the upper and lower bounds
-  upperBound <- i/n + (z^2) / (4*n) + z * sqrt(i) / n
-  lowerBound <- i/n + (z^2) / (4*n) - z * sqrt(i) / n
+  upperBound <- i/n + (z^2) / (4*n) - z * sqrt(i) / n
+  lowerBound <- i/n + (z^2) / (4*n) + z * sqrt(i) / n
 
   # Create create an indicator of the event n*\theta between upper & lower bound
   indic <- ifelse(numvisit.MLE.fit$estimate >= lowerBound &
@@ -637,3 +640,49 @@ ggplot(data = dataToPlot.lengths, aes(x = confidenceInterval, y = length,
         legend.text = element_text(face = "bold"), 
         legend.title = element_text(face = "bold")) +
   ggsave("./Plots/Boxplots_CIs_noBootstrap.png", type = "cairo", scale = 1.1)
+
+# ---------------------------------------------------------------------------- #
+# 9.2. Visualization of the average CIs
+# ---------------------------------------------------------------------------- #
+
+# 9.2.2. Create a dataframe that will hold the average LB and UB for each CI
+dataToPlot.avgBounds <- data.frame(
+  "method" = c("Real Estimate", "Real Estimate", "Real Estimate",
+               "Real Estimate", "Real Estimate", 
+               "Wald", "Wald",
+               "Score", "Score",
+               "VS", "VS",
+               "Exact", "Exact",
+               "Bootstrap", "Bootstrap"),
+  "bounds" = c(numvisit.MLE.fit$estimate,
+               numvisit.MLE.fit$estimate,
+               numvisit.MLE.fit$estimate,
+               numvisit.MLE.fit$estimate,
+               numvisit.MLE.fit$estimate,
+               mean(wald.confidenceIntervals$LB),
+               mean(wald.confidenceIntervals$UB),
+               mean(score.confidenceIntervals$LB),
+               mean(score.confidenceIntervals$UB),
+               mean(vs.confidenceIntervals$LB),
+               mean(vs.confidenceIntervals$UB),
+               mean(exact.confidenceIntervals$LB),
+               mean(exact.confidenceIntervals$UB),
+               mean(boot.confidenceIntervals$LB),
+               mean(boot.confidenceIntervals$UB)),
+  "elevation" = c(0, 1, 2, 3, 4, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4)
+)
+
+ggplot() +
+  geom_point(data = 
+    dataToPlot.avgBounds[dataToPlot.avgBounds$method != "Real Estimate",], 
+    aes(x = bounds, y = elevation, color = method),  shape = 16, size = 5) + 
+  geom_line(data = 
+    dataToPlot.avgBounds[dataToPlot.avgBounds$method != "Real Estimate",], 
+    aes(x = bounds, y = elevation, color = method), size = 2) + ylab("") + 
+  geom_point(data = 
+    dataToPlot.avgBounds[dataToPlot.avgBounds$method == "Real Estimate",], 
+    aes(x = bounds, y = elevation, color = method),  shape = 16, size = 5) + 
+  scale_color_brewer("Confidence Interval", palette = "Dark2") + 
+  theme_grey() + 
+  theme(axis.text.y = element_blank()) +
+  ggsave("./Plots/CIs.png", type = "cairo", scale = 1.2)
